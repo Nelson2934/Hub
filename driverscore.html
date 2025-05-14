@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GXO Absence Tracker (Enhanced Version)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .upload-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            text-align: center;
+            border-radius: 8px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #fileInfo {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .results {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+        }
+        
+        .summary h3 {
+            margin-top: 0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .instance-row {
+            background-color: #f9f9f9;
+            font-size: 0.9em;
+        }
+        
+        .instance-row td {
+            padding-left: 40px;
+        }
+        
+        .sts-badge, .sicknote-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sts-badge {
+            background-color: #3498db;
+        }
+        
+        .sicknote-badge {
+            background-color: #e74c3c;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        /* Charts container */
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .chart {
+            width: 48%;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Filter controls */
+        .filters {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-group label {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        /* Make app more mobile-friendly */
+        @media (max-width: 768px) {
+            .chart {
+                width: 100%;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-group {
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.9em;
+            }
+            
+            .filters select, .filters input {
+                width: 100%;
+                margin-top: 5px;
+            }
+        }
+        
+        /* CSV format guidance */
+        .format-guide {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: left;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .format-guide h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GXO Absence Tracker</h1>
+        
+        <div class="upload-section">
+            <h3>Upload Absence Data</h3>
+            <p>Upload your CSV file to analyze absence instances</p>
+            
+            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            <button id="browseButton" onclick="document.getElementById('csvFile').click();">Browse for CSV File</button>
+            
+            <div id="fileInfo">No file selected</div>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <button id="analyzeButton" onclick="analyzeFile()">Analyze Absences</button>
+            
+            <div class="format-guide">
+                <h4>Required CSV Format:</h4>
+                <p>Your CSV file should include these columns:</p>
+                <ul>
+                    <li>"Employee ID" - Unique identifier for each employee</li>
+                    <li>"Grouped By Employee Full Name & ID" - Employee name information</li>
+                    <li>"Date" - Absence date in DD/MM/YYYY format</li>
+                    <li>"Hours (Include Corrections)" - Hours of absence</li>
+                    <li>"Pay code" - Pay code information</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing data...</p>
+        </div>
+        
+        <div id="results" class="results">
+            <div class="summary">
+                <h3>Summary</h3>
+                <p>Total Employees: <span id="totalEmployees">0</span></p>
+                <p>Total Absence Instances: <span id="totalInstances">0</span></p>
+                <p>STS Instances: <span id="stsInstances">0</span></p>
+                <p>Sicknote Needed Instances: <span id="sicknoteInstances">0</span></p>
+            </div>
+            
+            <div class="charts-container">
+                <div class="chart">
+                    <canvas id="instanceTypeChart"></canvas>
+                </div>
+                <div class="chart">
+                    <canvas id="topEmployeesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <h3>Filter Results</h3>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="nameFilter">Employee Name:</label>
+                        <input type="text" id="nameFilter" placeholder="Filter by name">
+                    </div>
+                    <div class="filter-group">
+                        <label for="instanceTypeFilter">Instance Type:</label>
+                        <select id="instanceTypeFilter">
+                            <option value="all">All Types</option>
+                            <option value="sicknote">Sicknote Needed</option>
+                            <option value="lts">LTS</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="minInstancesFilter">Min Instances:</label>
+                        <input type="number" id="minInstancesFilter" min="1" value="1">
+                    </div>
+                    <div class="filter-group">
+                        <button onclick="applyFilters()">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="exportButton" onclick="exportData()">Export to Excel</button>
+            
+            <h3>Absence Instances by Employee</h3>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Employee ID</th>
+                        <th>Total Instances</th>
+                        <th>STS Count</th>
+                        <th>Sicknote Needed</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- Results will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        // Global variables
+        let employeeData = [];
+        let filteredEmployeeData = [];
+        let totalStats = { employees: 0, total: 0, sts: 0, sicknote: 0 };
+        let charts = {};
+        
+        // File input change handler
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileInfo').textContent = `Selected: ${file.name}`;
+                document.getElementById('errorMessage').style.display = 'none';
+            }
+        });
+        
+        // Validate CSV structure
+        function validateCSV(data) {
+            // Check if file has any data
+            if (!data || data.length === 0) {
+                return { valid: false, message: 'The CSV file is empty.' };
+            }
+            
+            // Check required columns
+            const requiredColumns = [
+                'Employee ID',
+                'Date'
+            ];
+            
+            const columns = Object.keys(data[0]);
+            const missingColumns = requiredColumns.filter(col => !columns.includes(col));
+            
+            if (missingColumns.length > 0) {
+                return { 
+                    valid: false, 
+                    message: `Missing required columns: ${missingColumns.join(', ')}` 
+                };
+            }
+            
+            // Check date format for at least the first row
+            const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+            if (data[0]['Date'] && !datePattern.test(data[0]['Date'])) {
+                return {
+                    valid: false,
+                    message: 'Date format should be DD/MM/YYYY'
+                };
+            }
+            
+            return { valid: true };
+        }
+        
+        // Analyze the CSV file
+        function analyzeFile() {
+            const fileInput = document.getElementById('csvFile');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorMessage.textContent = 'Please select a CSV file first';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Reset global variables
+            employeeData = [];
+            filteredEmployeeData = [];
+            totalStats = { employees: 0, total: 0, sts: 0, sicknote: 0 };
+            
+            // Parse CSV file
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    // Validate CSV structure
+                    const validation = validateCSV(results.data);
+                    if (!validation.valid) {
+                        errorMessage.textContent = validation.message;
+                        errorMessage.style.display = 'block';
+                        document.getElementById('loading').style.display = 'none';
+                        return;
+                    }
+                    
+                    try {
+                        processData(results.data);
+                    } catch (error) {
+                        console.error('Error processing data:', error);
+                        errorMessage.textContent = 'Error processing data: ' + error.message;
+                        errorMessage.style.display = 'block';
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                },
+                error: function(error) {
+                    errorMessage.textContent = 'Error reading the CSV file: ' + error.message;
+                    errorMessage.style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                }
+            });
+        }
+        
+        // Process the parsed CSV data
+        function processData(data) {
+            // Group absences by employee
+            const employeeAbsences = {};
+            
+            // Process each row in the CSV data
+            data.forEach(row => {
+                if (!row['Employee ID'] || !row['Date']) return;
+                
+                const employeeId = row['Employee ID'].trim();
+                let employeeName = row['Grouped By Employee Full Name & ID'] || '';
+                
+                // Extract name from format "Name, First (ID)"
+                if (employeeName.includes('(')) {
+                    employeeName = employeeName.split(' (')[0].trim();
+                }
+                
+                // Parse date
+                const dateParts = row['Date'].split('/');
+                if (dateParts.length !== 3) return; // Skip invalid dates
+                
+                const day = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1; // JS months are 0-indexed
+                const year = parseInt(dateParts[2]);
+                const date = new Date(year, month, day);
+                
+                // Skip invalid dates
+                if (isNaN(date.getTime())) return;
+                
+                // Initialize employee record if not exists
+                if (!employeeAbsences[employeeId]) {
+                    employeeAbsences[employeeId] = {
+                        name: employeeName,
+                        absences: []
+                    };
+                }
+                
+                // Add absence if not duplicate date
+                const dateString = date.toISOString().split('T')[0];
+                if (!employeeAbsences[employeeId].absences.some(a => a.dateString === dateString)) {
+                    employeeAbsences[employeeId].absences.push({
+                        date: date,
+                        dateString: dateString,
+                        hours: row['Hours (Include Corrections)'] || '',
+                        payCode: row['Pay code'] || ''
+                    });
+                }
+            });
+            
+            // Process each employee's absences to identify instances
+            Object.values(employeeAbsences).forEach(employee => {
+                // Sort absences by date
+                employee.absences.sort((a, b) => a.date - b.date);
+                
+                // Initialize instances array
+                employee.instances = [];
+                let currentInstance = [];
+                
+                employee.absences.forEach((absence, index) => {
+                    if (index === 0) {
+                        // First absence, start a new instance
+                        currentInstance.push(absence);
+                    } else {
+                        const prevDate = employee.absences[index - 1].date;
+                        const currentDate = absence.date;
+                        
+                        // Calculate days between dates
+                        const timeDiff = Math.abs(currentDate - prevDate);
+                        const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                        
+                        if (daysDiff >= 4 && daysDiff <= 5) {
+                            // Gap of 3-5 days, finish current instance and start a new one
+                            if (currentInstance.length > 0) {
+                                finishInstance();
+                            }
+                            
+                            // Start a new instance
+                            currentInstance = [absence];
+                        } else if (daysDiff > 5) {
+                            // Gap of more than 5 days, definitely a new instance
+                            if (currentInstance.length > 0) {
+                                finishInstance();
+                            }
+                            
+                            // Start a new instance
+                            currentInstance = [absence];
+                        } else {
+                            // Consecutive or gap of 1-2 days, add to current instance
+                            currentInstance.push(absence);
+                        }
+                    }
+                });
+                
+                // Add the final instance if there's anything left
+                if (currentInstance.length > 0) {
+                    finishInstance();
+                }
+                
+                function finishInstance() {
+                    const startDate = currentInstance[0].date;
+                    const endDate = currentInstance[currentInstance.length - 1].date;
+                    
+                    // Calculate days between start and end (inclusive)
+                    const timeDiff = Math.abs(endDate - startDate);
+                    const totalDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    // Determine if it's sicknote needed (>7 days) or STS
+                    const instanceType = totalDays > 7 ? 'sicknote' : 'STS';
+                    
+                    employee.instances.push({
+                        startDate: startDate,
+                        endDate: endDate,
+                        recordedDays: currentInstance.length,
+                        totalDays: totalDays,
+                        type: instanceType,
+                        absences: [...currentInstance]
+                    });
+                }
+            });
+            
+            // Count instances and prepare for display
+            employeeData = [];
+            totalStats = { employees: 0, total: 0, sicknote: 0, lts: 0 };
+            
+            Object.entries(employeeAbsences).forEach(([id, employee]) => {
+                if (employee.instances.length === 0) return;
+                
+                const sicknoteCount = employee.instances.filter(i => i.type === 'sicknote').length;
+                const stsCount = employee.instances.filter(i => i.type === 'STS').length;
+                
+                employeeData.push({
+                    id: id,
+                    name: employee.name,
+                    instances: employee.instances,
+                    totalInstances: employee.instances.length,
+                    totalInstances: employee.instances.length,
+                    sicknoteCount: sicknoteCount,
+                    stsCount: stsCount
+                });
+                
+                totalStats.employees++;
+                totalStats.total += employee.instances.length;
+                totalStats.sicknote += sicknoteCount;
+                totalStats.sts += stsCount;
+            });
+            
+            // Sort by name
+            employeeData.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Set filtered data to all data initially
+            filteredEmployeeData = [...employeeData];
+            
+            // Display results
+            displayResults();
+            
+            // Create charts
+            createCharts();
+        }
+        
+        // Create charts with Chart.js
+        function createCharts() {
+                if (charts.instanceTypeChart) {
+                    charts.instanceTypeChart.destroy();
+                }
+                if (charts.topEmployeesChart) {
+                    charts.topEmployeesChart.destroy();
+                }
+            
+            // Instance type distribution chart
+            const instanceTypeCtx = document.getElementById('instanceTypeChart').getContext('2d');
+            charts.instanceTypeChart = new Chart(instanceTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['STS', 'Sicknote Needed'],
+                    datasets: [{
+                        data: [totalStats.sts, totalStats.sicknote],
+                        backgroundColor: ['#3498db', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Instance Type Distribution',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Top 5 employees by total instances
+            const topEmployees = [...employeeData]
+                .sort((a, b) => b.totalInstances - a.totalInstances)
+                .slice(0, 5);
+            
+            const topEmployeesData = {
+                labels: topEmployees.map(emp => emp.name.length > 15 ? emp.name.substring(0, 15) + '...' : emp.name),
+                datasets: [
+                    {
+                        label: 'STS',
+                        data: topEmployees.map(emp => emp.stsCount),
+                        backgroundColor: '#3498db'
+                    },
+                    {
+                        label: 'Sicknote Needed',
+                        data: topEmployees.map(emp => emp.sicknoteCount),
+                        backgroundColor: '#e74c3c'
+                    }
+                ]
+            };
+            
+            const topEmployeesCtx = document.getElementById('topEmployeesChart').getContext('2d');
+            charts.topEmployeesChart = new Chart(topEmployeesCtx, {
+                type: 'bar',
+                data: topEmployeesData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Top 5 Employees by Absence Instances',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Employee'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Instances'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Format date as DD/MM/YYYY
+        function formatDate(date) {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+            // Apply filters to the data
+            function applyFilters() {
+                const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+                const instanceTypeFilter = document.getElementById('instanceTypeFilter').value;
+                const minInstancesFilter = parseInt(document.getElementById('minInstancesFilter').value) || 1;
+                
+                filteredEmployeeData = employeeData.filter(employee => {
+                    // Filter by name
+                    if (nameFilter && !employee.name.toLowerCase().includes(nameFilter)) {
+                        return false;
+                    }
+                    
+                    // Filter by minimum instances
+                    if (employee.totalInstances < minInstancesFilter) {
+                        return false;
+                    }
+                    
+                    // Filter by instance type
+                    if (instanceTypeFilter === 'sts' && employee.stsCount === 0) {
+                        return false;
+                    }
+                    if (instanceTypeFilter === 'sicknote' && employee.sicknoteCount === 0) {
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+                // Update display with filtered data
+                displayResults();
+            }
+        
+        // Display the results in the table
+        function displayResults() {
+            // Count STS instances directly from the employee data
+            let directSTSCount = 0;
+            employeeData.forEach(emp => {
+                directSTSCount += (emp.stsCount || 0);
+            });
+            
+            // Force set the STS count
+            totalStats.sts = directSTSCount;
+            
+            // Update summary with total stats (not filtered)
+            document.getElementById('totalEmployees').textContent = totalStats.employees;
+            document.getElementById('totalInstances').textContent = totalStats.total;
+            document.getElementById('stsInstances').textContent = directSTSCount;
+            document.getElementById('sicknoteInstances').textContent = totalStats.sicknote;
+            
+            // Clear previous results
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = '';
+            
+            // Add each employee row (filtered)
+            filteredEmployeeData.forEach(employee => {
+                // Create the main employee row
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.name}</td>
+                    <td>${employee.id}</td>
+                    <td>${employee.totalInstances}</td>
+                    <td>${employee.stsCount || 0}</td>
+                    <td>${employee.sicknoteCount || 0}</td>
+                    <td><button onclick="toggleDetails('${employee.id}')">Show Details</button></td>
+                `;
+                resultsBody.appendChild(row);
+                
+                // Create a container row for instances (initially hidden)
+                const detailsRow = document.createElement('tr');
+                detailsRow.id = `details-${employee.id}`;
+                detailsRow.style.display = 'none';
+                
+                // Create a details table for the instances
+                let detailsContent = `
+                    <td colspan="6">
+                        <table style="width: 100%; margin: 10px 0;">
+                            <thead>
+                                <tr>
+                                    <th>Instance #</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Recorded Days</th>
+                                    <th>Calendar Days</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Add each instance
+                employee.instances.forEach((instance, index) => {
+                    const badgeClass = instance.type === 'sicknote' ? 'sicknote-badge' : 'sts-badge';
+                    const displayType = instance.type === 'sicknote' ? 'Sicknote Needed' : 'STS';
+                    
+                    detailsContent += `
+                        <tr class="instance-row">
+                            <td>${index + 1}</td>
+                            <td>${formatDate(instance.startDate)}</td>
+                            <td>${formatDate(instance.endDate)}</td>
+                            <td>${instance.recordedDays}</td>
+                            <td>${instance.totalDays}</td>
+                            <td><span class="${badgeClass}">${displayType}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                detailsContent += `
+                            </tbody>
+                        </table>
+                    </td>
+                `;
+                
+                detailsRow.innerHTML = detailsContent;
+                resultsBody.appendChild(detailsRow);
+            });
+            
+            // Hide loading, show results
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        // Toggle details for an employee
+        function toggleDetails(employeeId) {
+            const detailsRow = document.getElementById(`details-${employeeId}`);
+            if (detailsRow) {
+                detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
+            }
+        }
+        
+        // Export data to Excel
+        function exportData() {
+            if (employeeData.length === 0) {
+                alert('No data to export. Please analyze a file first.');
+                return;
+            }
+            
+            // Create workbook and worksheets
+            const wb = XLSX.utils.book_new();
+            
+            // Summary worksheet
+            const summaryData = [
+                ['GXO Absence Instance Summary'],
+                [],
+                ['Generated on', formatDate(new Date())],
+                [],
+                ['Total Employees', totalStats.employees],
+                ['Total Instances', totalStats.total],
+                ['STS Instances', totalStats.sts],
+                ['Sicknote Needed Instances', totalStats.sicknote]
+            ];
+            
+            // Employee summary worksheet - use filtered data if filtered
+            const dataToExport = filteredEmployeeData.length < employeeData.length ? 
+                filteredEmployeeData : employeeData;
+            
+            const employeeSummaryData = [
+                ['Employee Name', 'Employee ID', 'Total Instances', 'STS Count', 'Sicknote Needed Count']
+            ];
+            
+            dataToExport.forEach(employee => {
+                employeeSummaryData.push([
+                    employee.name,
+                    employee.id,
+                    employee.totalInstances,
+                    employee.stsCount,
+                    employee.sicknoteCount
+                ]);
+            });
+            
+            // Detailed instances worksheet
+            const detailedData = [
+                ['Employee Name', 'Employee ID', 'Instance #', 'Start Date', 'End Date', 'Recorded Days', 'Calendar Days', 'Type']
+            ];
+            
+            dataToExport.forEach(employee => {
+                employee.instances.forEach((instance, index) => {
+                    detailedData.push([
+                        employee.name,
+                        employee.id,
+                        index + 1,
+                        formatDate(instance.startDate),
+                        formatDate(instance.endDate),
+                        instance.recordedDays,
+                        instance.totalDays,
+                        instance.type === 'sicknote' ? 'Sicknote Needed' : 'STS'
+                    ]);
+                });
+            });
+            
+            // Add worksheets to workbook
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), 'Summary');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(employeeSummaryData), 'Employee Summary');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailedData), 'Detailed Instances');
+            
+            // Save file
+            XLSX.writeFile(wb, 'GXO_Absence_Analysis.xlsx');
+        }
+    </script>
+</body>
+</html>
