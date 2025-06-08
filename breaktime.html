@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Break Duration Checker</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 6px 10px; }
+    th { background-color: #f2f2f2; }
+    .over { background-color: #ffdddd; }
+  </style>
+</head>
+<body>
+  <h2>Break Time Checker</h2>
+  <input type="file" id="csvFile" accept=".csv" />
+  <br /><br />
+  <table id="results">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Duration (mins)</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    document.getElementById("csvFile").addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          const rows = results.data;
+          const tbody = document.querySelector("#results tbody");
+          tbody.innerHTML = "";
+
+          rows.forEach(row => {
+            const name = row["Employee Full Name & ID"];
+            const start = new Date(row["Start Date Time"]);
+            const end = new Date(row["End Date Time"]);
+            const date = row["Apply Date"];
+
+            if (isNaN(start) || isNaN(end)) return;
+
+            const duration = (end - start) / 60000;
+            const over30 = duration > 30;
+
+            const tr = document.createElement("tr");
+            if (over30) tr.classList.add("over");
+
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>${date}</td>
+              <td>${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+              <td>${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+              <td>${duration.toFixed(1)}</td>
+              <td>${over30 ? "❗ Over 30 mins" : "✅ OK"}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
