@@ -127,6 +127,9 @@
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
+        beforeFirstChunk: function(chunk) {
+          return chunk.split("\n").slice(9).join("\n");
+        },
         complete: function (results) {
           const rows = results.data;
           const names = new Set();
