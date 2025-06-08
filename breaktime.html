@@ -2,19 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Break Duration Checker</title>
+  <title>GXO Break Checker</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 6px 10px; }
-    th { background-color: #f2f2f2; }
-    .over { background-color: #ffdddd; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff;
+      color: #333;
+      padding: 20px;
+    }
+    h2 {
+      margin: 0 0 20px;
+      font-size: 24px;
+    }
+    .logo h2 span {
+      color: #d71920;
+      font-weight: bold;
+    }
+    table, th, td {
+      border: 1px solid #d71920;
+      border-collapse: collapse;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe6e6;
+    }
+    .over {
+      background-color: #fff0f0;
+    }
+    select, button {
+      padding: 6px 12px;
+      margin: 6px 10px 12px 0;
+      border: 1px solid #d71920;
+      border-radius: 4px;
+      background-color: #d71920;
+      color: #fff;
+      cursor: pointer;
+    }
+    select {
+      background-color: #fff;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    #count {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    tfoot td {
+      background-color: #f8dcdc;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h2>Break Time Checker</h2>
+  <div class="logo">
+    <h2><span>GXO</span> Break Time Checker – Over 30 Minutes</h2>
+  </div>
+
   <input type="file" id="csvFile" accept=".csv" />
-  <br /><br />
+
+  <div>
+    <label for="nameFilter">Filter by Name:</label>
+    <select id="nameFilter"><option value="ALL">-- All --</option></select>
+
+    <label for="dateFilter">Filter by Date:</label>
+    <select id="dateFilter"><option value="ALL">-- All --</option></select>
+
+    <button onclick="exportToExcel()">📤 Export</button>
+  </div>
+
+  <div id="count">No data loaded yet.</div>
+
   <table id="results">
     <thead>
       <tr>
@@ -23,13 +83,30 @@
         <th>Start</th>
         <th>End</th>
         <th>Duration (mins)</th>
-        <th>Status</th>
       </tr>
     </thead>
     <tbody></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">Average Duration</td>
+        <td id="avgCell">–</td>
+      </tr>
+      <tr>
+        <td colspan="4">Total Duration</td>
+        <td id="totalCell">–</td>
+      </tr>
+    </tfoot>
   </table>
 
   <script>
+    let overData = [];
+
+    function parseUKDateTime(datetimeStr) {
+      const [datePart, timePart] = datetimeStr.split(' ');
+      const [day, month, year] = datePart.split('/');
+      return new Date(`${year}-${month}-${day}T${timePart}`);
+    }
+
     document.getElementById("csvFile").addEventListener("change", function (e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -39,36 +116,122 @@
         skipEmptyLines: true,
         complete: function (results) {
           const rows = results.data;
-          const tbody = document.querySelector("#results tbody");
-          tbody.innerHTML = "";
+          const names = new Set();
+          const dates = new Set();
+          overData = [];
 
           rows.forEach(row => {
             const name = row["Employee Full Name & ID"];
-            const start = new Date(row["Start Date Time"]);
-            const end = new Date(row["End Date Time"]);
             const date = row["Apply Date"];
+            const start = parseUKDateTime(row["Start Date Time"]);
+            const end = parseUKDateTime(row["End Date Time"]);
 
             if (isNaN(start) || isNaN(end)) return;
 
             const duration = (end - start) / 60000;
-            const over30 = duration > 30;
-
-            const tr = document.createElement("tr");
-            if (over30) tr.classList.add("over");
-
-            tr.innerHTML = `
-              <td>${name}</td>
-              <td>${date}</td>
-              <td>${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-              <td>${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-              <td>${duration.toFixed(1)}</td>
-              <td>${over30 ? "❗ Over 30 mins" : "✅ OK"}</td>
-            `;
-            tbody.appendChild(tr);
+            if (duration > 30) {
+              names.add(name);
+              dates.add(date);
+              overData.push({
+                name,
+                date,
+                start,
+                end,
+                duration: duration.toFixed(1)
+              });
+            }
           });
+
+          populateFilters([...names], [...dates]);
+          renderTable();
         }
       });
     });
+
+    document.getElementById("nameFilter").addEventListener("change", renderTable);
+    document.getElementById("dateFilter").addEventListener("change", renderTable);
+
+    function populateFilters(names, dates) {
+      const nameSelect = document.getElementById("nameFilter");
+      const dateSelect = document.getElementById("dateFilter");
+
+      nameSelect.innerHTML = '<option value="ALL">-- All --</option>';
+      names.sort().forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        nameSelect.appendChild(option);
+      });
+
+      dateSelect.innerHTML = '<option value="ALL">-- All --</option>';
+      dates.sort().forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = date;
+        dateSelect.appendChild(option);
+      });
+    }
+
+    function renderTable() {
+      const nameFilter = document.getElementById("nameFilter").value;
+      const dateFilter = document.getElementById("dateFilter").value;
+      const tbody = document.querySelector("#results tbody");
+      const count = document.getElementById("count");
+      const avgCell = document.getElementById("avgCell");
+      const totalCell = document.getElementById("totalCell");
+
+      tbody.innerHTML = "";
+
+      const filtered = overData.filter(row =>
+        (nameFilter === "ALL" || row.name === nameFilter) &&
+        (dateFilter === "ALL" || row.date === dateFilter)
+      );
+
+      let total = 0;
+
+      filtered.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.classList.add("over");
+        tr.innerHTML = `
+          <td>${row.name}</td>
+          <td>${row.date}</td>
+          <td>${row.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+          <td>${row.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+          <td>${row.duration}</td>
+        `;
+        tbody.appendChild(tr);
+        total += parseFloat(row.duration);
+      });
+
+      count.textContent = `⚠️ ${filtered.length} break(s) over 30 minutes`;
+      totalCell.textContent = total.toFixed(1);
+      avgCell.textContent = filtered.length > 0 ? (total / filtered.length).toFixed(1) : "–";
+    }
+
+    function exportToExcel() {
+      const exportData = [["Name", "Date", "Start", "End", "Duration (mins)"]];
+      const nameFilter = document.getElementById("nameFilter").value;
+      const dateFilter = document.getElementById("dateFilter").value;
+      const filtered = overData.filter(row =>
+        (nameFilter === "ALL" || row.name === nameFilter) &&
+        (dateFilter === "ALL" || row.date === dateFilter)
+      );
+
+      filtered.forEach(row => {
+        exportData.push([
+          row.name,
+          row.date,
+          row.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          row.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          row.duration
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "GXO Report");
+      XLSX.writeFile(wb, "GXO_Over_30_Breaks.xlsx");
+    }
   </script>
 </body>
 </html>
