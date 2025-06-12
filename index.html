@@ -1,216 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload Hub</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload Hub</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const correctPassword = "1234";
+      let enteredPassword = "";
+
+      while (enteredPassword !== correctPassword) {
+        enteredPassword = prompt("Enter password:");
+        if (enteredPassword === null) {
+          document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>Access Cancelled</h2>";
+          return;
         }
-        
-        html, body {
-            height: 100%;
-            width: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: #333;
+        if (enteredPassword !== correctPassword) {
+          alert("Incorrect password. Try again.");
         }
-        
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            text-align: center;
-        }
-        
-        header {
-            margin-bottom: 40px;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 1.2rem;
-        }
-        
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-gap: 20px;
-            margin: 0 auto;
-        }
-        
-        /* Make sure boxes stay square on all screen sizes */
-        @media (max-width: 1200px) {
-            .grid-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .grid-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .box {
-            aspect-ratio: 1/1;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: inherit;
-        }
-        
-        .box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .box-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        
-        .box-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        
-        .box-description {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-        
-        footer {
-            margin-top: 40px;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-        
-        /* Specific colors for each box */
-        .box:nth-child(1) { border-top: 4px solid #3498db; }
-        .box:nth-child(2) { border-top: 4px solid #e74c3c; }
-        .box:nth-child(3) { border-top: 4px solid #2ecc71; }
-        .box:nth-child(4) { border-top: 4px solid #f39c12; }
-        .box:nth-child(5) { border-top: 4px solid #9b59b6; }
-        .box:nth-child(6) { border-top: 4px solid #1abc9c; }
-        .box:nth-child(7) { border-top: 4px solid #e67e22; }
-        .box:nth-child(8) { border-top: 4px solid #34495e; }
-        .box:nth-child(9) { border-top: 4px solid #d35400; }
-        .box:nth-child(10) { border-top: 4px solid #27ae60; }
-    </style>
+      }
+
+      document.querySelector(".container").style.display = "block";
+    });
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      text-align: center;
+      display: none; /* Hidden until password is entered */
+    }
+
+    header {
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #7f8c8d;
+      font-size: 1.2rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-gap: 20px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .box {
+      aspect-ratio: 1/1;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .box-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .box-title {
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .box-description {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      margin-top: 40px;
+      color: #7f8c8d;
+      font-size: 0.9rem;
+    }
+
+    .box:nth-child(1) { border-top: 4px solid #3498db; }
+    .box:nth-child(2) { border-top: 4px solid #e74c3c; }
+    .box:nth-child(3) { border-top: 4px solid #2ecc71; }
+    .box:nth-child(4) { border-top: 4px solid #f39c12; }
+    .box:nth-child(5) { border-top: 4px solid #9b59b6; }
+    .box:nth-child(6) { border-top: 4px solid #1abc9c; }
+    .box:nth-child(7) { border-top: 4px solid #e67e22; }
+    .box:nth-child(8) { border-top: 4px solid #34495e; }
+    .box:nth-child(9) { border-top: 4px solid #d35400; }
+    .box:nth-child(10) { border-top: 4px solid #27ae60; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>File Upload Hub</h1>
-            <p class="subtitle">Select a category to upload and manage your files</p>
-        </header>
-        
-        <div class="grid-container">
-            <!-- Box 1 -->
-            <a href="driverscore.html" class="box">
-                <div class="box-icon">🤢</div>
-                <h2 class="box-title">GXO AMP Report</h2>
-                <p class="box-description">Upload and organize your photos</p>
-            </a>
-            
-            <!-- Box 2 -->
-            <a href="breaktime.html" class="box">
-                <div class="box-icon">📄</div>
-                <h2 class="box-title">Documents</h2>
-                <p class="box-description">Manage your PDFs and docs</p>
-            </a>
-            
-            <!-- Box 3 -->
-            <a href="videos.html" class="box">
-                <div class="box-icon">🎬</div>
-                <h2 class="box-title">Videos</h2>
-                <p class="box-description">Store your video content</p>
-            </a>
-            
-            <!-- Box 4 -->
-            <a href="audio.html" class="box">
-                <div class="box-icon">🎵</div>
-                <h2 class="box-title">Audio</h2>
-                <p class="box-description">Organize your music files</p>
-            </a>
-            
-            <!-- Box 5 -->
-            <a href="archives.html" class="box">
-                <div class="box-icon">🗄️</div>
-                <h2 class="box-title">Archives</h2>
-                <p class="box-description">Manage compressed files</p>
-            </a>
-            
-            <!-- Box 6 -->
-            <a href="projects.html" class="box">
-                <div class="box-icon">📁</div>
-                <h2 class="box-title">Projects</h2>
-                <p class="box-description">Organize by project</p>
-            </a>
-            
-            <!-- Box 7 -->
-            <a href="presentations.html" class="box">
-                <div class="box-icon">📊</div>
-                <h2 class="box-title">Presentations</h2>
-                <p class="box-description">Store your slide decks</p>
-            </a>
-            
-            <!-- Box 8 -->
-            <a href="code.html" class="box">
-                <div class="box-icon">💻</div>
-                <h2 class="box-title">Code</h2>
-                <p class="box-description">Manage script files</p>
-            </a>
-            
-            <!-- Box 9 -->
-            <a href="shared.html" class="box">
-                <div class="box-icon">🔄</div>
-                <h2 class="box-title">Shared Files</h2>
-                <p class="box-description">Access shared files</p>
-            </a>
-            
-            <!-- Box 10 -->
-            <a href="personal.html" class="box">
-                <div class="box-icon">🔒</div>
-                <h2 class="box-title">Personal</h2>
-                <p class="box-description">Private documents</p>
-            </a>
-        </div>
-        
-        <footer>
-            <p>File Upload Hub &copy; 2025 - All files remain on your device</p>
-        </footer>
+  <div class="container">
+    <header>
+      <h1>File Upload Hub</h1>
+      <p class="subtitle">Select a category to upload and manage your files</p>
+    </header>
+
+    <div class="grid-container">
+      <a href="breaktime.html" class="box">
+        <div class="box-icon">☕</div>
+        <h2 class="box-title">GXO Break Time</h2>
+        <p class="box-description">Check for late returns</p>
+      </a>
+      <a href="documents.html" class="box">
+        <div class="box-icon">📄</div>
+        <h2 class="box-title">Documents</h2>
+        <p class="box-description">Manage your PDFs and docs</p>
+      </a>
+      <a href="videos.html" class="box">
+        <div class="box-icon">🎬</div>
+        <h2 class="box-title">Videos</h2>
+        <p class="box-description">Store your video content</p>
+      </a>
+      <a href="audio.html" class="box">
+        <div class="box-icon">🎵</div>
+        <h2 class="box-title">Audio</h2>
+        <p class="box-description">Organize your music files</p>
+      </a>
+      <a href="archives.html" class="box">
+        <div class="box-icon">🗄️</div>
+        <h2 class="box-title">Archives</h2>
+        <p class="box-description">Manage compressed files</p>
+      </a>
+      <a href="projects.html" class="box">
+        <div class="box-icon">📁</div>
+        <h2 class="box-title">Projects</h2>
+        <p class="box-description">Organize by project</p>
+      </a>
+      <a href="presentations.html" class="box">
+        <div class="box-icon">📊</div>
+        <h2 class="box-title">Presentations</h2>
+        <p class="box-description">Store your slide decks</p>
+      </a>
+      <a href="code.html" class="box">
+        <div class="box-icon">💻</div>
+        <h2 class="box-title">Code</h2>
+        <p class="box-description">Manage script files</p>
+      </a>
+      <a href="shared.html" class="box">
+        <div class="box-icon">🔄</div>
+        <h2 class="box-title">Shared Files</h2>
+        <p class="box-description">Access shared files</p>
+      </a>
+      <a href="personal.html" class="box">
+        <div class="box-icon">🔒</div>
+        <h2 class="box-title">Personal</h2>
+        <p class="box-description">Private documents</p>
+      </a>
     </div>
+
+    <footer>
+      <p>File Upload Hub &copy; 2025 - All files remain on your device</p>
+    </footer>
+  </div>
 </body>
 </html>
