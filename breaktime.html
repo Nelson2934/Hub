@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -67,6 +67,13 @@
 <body>
   <div class="logo">
     <h2><span>GXO</span> Break Time Checker – Over 30 Minutes</h2>
+  </div>
+
+  <!-- Home Button -->
+  <div style="margin-bottom: 20px;">
+    <a href="index.html" style="text-decoration: none;">
+      <button>🏠 Home Page</button>
+    </a>
   </div>
 
   <input type="file" id="csvFile" accept=".csv" />
@@ -211,7 +218,7 @@
       );
 
       let totalDuration = 0;
-      let totalsByName = {};
+      let totalsByNameAndDate = {};
 
       filtered.forEach(row => {
         const tr = document.createElement("tr");
@@ -226,17 +233,18 @@
         tbody.appendChild(tr);
         totalDuration += parseFloat(row.duration);
 
-        if (!totalsByName[row.name]) totalsByName[row.name] = 0;
-        totalsByName[row.name] += row.overAmount;
+        const key = `${row.name} - ${row.date}`;
+        if (!totalsByNameAndDate[key]) totalsByNameAndDate[key] = 0;
+        totalsByNameAndDate[key] += row.overAmount;
       });
 
       count.textContent = `⚠️ ${filtered.length} break(s) over 30 minutes`;
       totalCell.textContent = totalDuration.toFixed(1);
       avgCell.textContent = filtered.length > 0 ? (totalDuration / filtered.length).toFixed(1) : "–";
 
-      const lines = Object.entries(totalsByName)
+      const lines = Object.entries(totalsByNameAndDate)
         .sort((a, b) => b[1] - a[1])
-        .map(([name, total]) => `🧑 ${name}: ${total.toFixed(1)} mins over`);
+        .map(([key, total]) => `🧑 ${key}: ${total.toFixed(1)} mins over`);
       totalsDiv.textContent = lines.length ? lines.join("\n") : "No over-limit breaks found.";
     }
 
